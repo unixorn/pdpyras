@@ -36,7 +36,7 @@ def auto_json(method):
     Function decorator that makes methods return the full response JSON
     """
     def call(self, path, **kw):
-        response = raise_on_error(method(self, path, **pass_kw))
+        response = raise_on_error(method(self, path, **kw))
         return try_decoding(response)
     return call
 
@@ -538,7 +538,7 @@ class PDSession(requests.Session):
         })
 
         # Special changes to user-supplied parameters, for convenience
-        if 'params' in kwargs:
+        if 'params' in kwargs and kwargs['params']:
             req_kw['params'] = self.normalize_params(kwargs['params'])
 
         # Compose the full URL:
