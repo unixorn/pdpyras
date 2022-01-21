@@ -1212,6 +1212,35 @@ class APISession(PDSession):
                     item_hook(result, n, total_count)
                 yield result
 
+    def iter_cursor(self, path, attribute, params=None):
+        """
+        Iterator for results from an endpoint supporting cursor-based pagination
+
+        :param path:
+            The index endpoint URL to use.
+        :param attribute:
+            The property in the JSON body, i.e. ``records`` for
+            ``/audit/records``, in which to find results
+        :param params:
+            Query parameters to include in the request.
+        """
+        user_params = deepcopy(params)
+        more = True
+        next_cursor = None
+        while more:
+            if next_cursor:
+                user_params.update({'cursor': next_cursor})
+            page = self.jget(path, params=user_params)
+            if attribute not in page:
+                raise ValueError(f"The specified attribute \"{attribute}\" "
+                    "was not found in the response body from {path}.")
+            for result in page[attribute]:
+                yield result
+            next_cursor = page.get('next_cursor', None)
+            more = bool(next_cursor)
+
+
+
     @auto_json
     def jget(self, path, **kw):
         """
